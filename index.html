@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>专属恋爱扭蛋机</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #ffe6f0, #fff);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  }
+
+  .machine {
+    width: 320px;
+    background: #ffb6d5;
+    border-radius: 28px;
+    padding: 16px;
+    box-shadow: 0 20px 40px rgba(255, 182, 213, 0.6);
+    text-align: center;
+    animation: idle 3s ease-in-out infinite;
+  }
+
+  @keyframes idle {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  .title {
+    background: #fff;
+    border-radius: 16px;
+    padding: 10px;
+    font-weight: 600;
+    color: #ff6fa8;
+    margin-bottom: 12px;
+  }
+
+  .window {
+    width: 220px;
+    height: 220px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    border: 6px solid #ffd1e3;
+  }
+
+  .egg {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    animation: float 4s linear infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(240px) rotate(0deg); }
+    100% { transform: translateY(-60px) rotate(360deg); }
+  }
+
+  .pull-btn {
+    margin-top: 16px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: #5ac8fa;
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 6px 0 #2fa4d9;
+    cursor: pointer;
+  }
+
+  .pull-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #2fa4d9;
+  }
+
+  .exit {
+    width: 80px;
+    height: 24px;
+    background: #222;
+    border-radius: 0 0 12px 12px;
+    margin: 10px auto 0;
+  }
+
+  .shake {
+    animation: shake 0.4s;
+  }
+
+  @keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    50% { transform: translateX(4px); }
+    75% { transform: translateX(-4px); }
+    100% { transform: translateX(0); }
+  }
+
+  .card {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-inner {
+    width: 280px;
+    background: #fff;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    animation: pop 0.3s ease-out;
+  }
+
+  @keyframes pop {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .card-icon {
+    font-size: 40px;
+  }
+
+  .card-title {
+    margin-top: 8px;
+    font-weight: 600;
+  }
+
+  .card-desc {
+    margin-top: 6px;
+    font-size: 14px;
+    opacity: 0.8;
+  }
+</style>
+</head>
+
+<body>
+  <div class="machine" id="machine">
+    <div class="title">给你的专属恋爱扭蛋机</div>
+
+    <div class="window" id="window"></div>
+
+    <button class="pull-btn" id="pull">PULL!</button>
+    <div class="exit"></div>
+  </div>
+
+  <div class="card" id="card">
+    <div class="card-inner" id="cardInner">
+      <div class="card-icon" id="cardIcon"></div>
+      <div class="card-title" id="cardTitle"></div>
+      <div class="card-desc" id="cardDesc"></div>
+    </div>
+  </div>
+
+<script>
+  const windowBox = document.getElementById("window");
+  const pullBtn = document.getElementById("pull");
+  const machine = document.getElementById("machine");
+  const card = document.getElementById("card");
+
+  const rewards = [
+    {
+      icon: "💗",
+      title: "被认真对待的一天",
+      desc: "你存在这件事，本身就值得被温柔放在心上。",
+      color: "#ff6fa8"
+    },
+    {
+      icon: "🧸",
+      title: "安全感抱抱券",
+      desc: "世界有点吵，你可以在这里靠一下。",
+      color: "#ffd1e3"
+    },
+    {
+      icon: "🍬",
+      title: "甜度刚好的回应",
+      desc: "你的表达被接住了，完整又干净。",
+      color: "#ffb6d5"
+    },
+    {
+      icon: "🌙",
+      title: "不被催促的夜晚",
+      desc: "节奏慢下来，也是一种被允许。",
+      color: "#c7bfff"
+    },
+    {
+      icon: "🐻",
+      title: "稳定陪伴感",
+      desc: "你不用表现得更好，已经足够。",
+      color: "#ffe6a7"
+    },
+    {
+      icon: "✨",
+      title: "被看见的细节",
+      desc: "那些微小想法，有人在意。",
+      color: "#d4f1f9"
+    }
+  ];
+
+  function createEgg() {
+    const egg = document.createElement("div");
+    egg.className = "egg";
+    const r = rewards[Math.floor(Math.random() * rewards.length)];
+    egg.textContent = r.icon;
+    egg.style.background = r.color;
+    egg.style.left = Math.random() * 170 + "px";
+    egg.style.animationDuration = 3 + Math.random() * 2 + "s";
+    windowBox.appendChild(egg);
+    setTimeout(() => egg.remove(), 4000);
+  }
+
+  for (let i = 0; i < 6; i++) createEgg();
+  setInterval(createEgg, 900);
+
+  pullBtn.onclick = () => {
+    machine.classList.add("shake");
+    setTimeout(() => machine.classList.remove("shake"), 400);
+
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+    setTimeout(() => {
+      document.getElementById("cardIcon").textContent = reward.icon;
+      document.getElementById("cardTitle").textContent = reward.title;
+      document.getElementById("cardDesc").textContent = reward.desc;
+      document.getElementById("cardInner").style.background = reward.color;
+      card.style.display = "flex";
+    }, 500);
+  };
+
+  card.onclick = () => {
+    card.style.display = "none";
+  };
+</script>
+</body>
+</html>
